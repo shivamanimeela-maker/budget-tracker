@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Monthly Summary</title>
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Monthly Summary</h1>
+
+    <input id="month" placeholder="Month (MM)">
+    <input id="year" placeholder="Year (YYYY)">
+
+    <button onclick="getSummary()">Get Summary</button>
+
+    <!-- Show Result -->
+    <pre id="result"></pre>
+
+    <!-- Bar Graph -->
+    <canvas id="summaryChart" width="300" height="200"></canvas>
+
+    <h3>Savings Progress</h3>
+    <progress id="progress" value="0" max="100"></progress>
+
+    <br><br>
+
+    <button onclick="goBack()">Back to Dashboard</button>
+
+</div>
+
+<script>
+
+let chart = null;
+
+// Auto fill month/year (optional)
+document.getElementById("month").value = "02";
+document.getElementById("year").value = "2026";
+
+function getSummary() {
+
+    const userId = localStorage.getItem("userId");
+    const month = document.getElementById("month").value;
+    const year = document.getElementById("year").value;
+
+    if (!userId) {
+        alert("Please login again!");
+        return;
+    }
+
+    fetch(`http://localhost:8083/summary/${userId}/${month}/${year}`)
+    .then(res => res.json())
+    .then(data => {
+
+        // Show JSON data
+        document.getElementById("result").innerText =
+            JSON.stringify(data, null, 2);
+
+        // Draw Bar Chart
+        drawChart(data.totalIncome, data.totalExpense);
+
+        // Update Progress Bar
+        updateProgress(data.savings, data.totalIncome);
+    });
+}
+
+
+// Draw Bar Graph
+function drawChart(income, expense) {
+
+    const ctx = document
+        .getElementById("summaryChart")
+        .getContext("2d");
+
+    // Remove old chart
+    if (chart != null) {
+        chart.destroy();
+    }
+
+    chart = new Chart(ctx, {
+
+        type: "bar",
+
+        data: {
+            labels: ["Income", "Expense"],
+
+            datasets: [{
+                label: "Amount",
+
+                data: [income, expense],
+
+                backgroundColor: [
+                    "#4CAF50",   // Green
+                    "#F44336"    // Red
+                ]
+            }]
+        },
+
+        options: {
+
+            responsive: true,
+
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+
+// Update Savings Progress
+function updateProgress(savings, income) {
+
+    if (income === 0) {
+        document.getElementById("progress").value = 0;
+        return;
+    }
+
+    const percent = (savings / income) * 100;
+
+    document.getElementById("progress").value = percent;
+}
+
+
+// Back button
+function goBack() {
+    window.location.href = "dashboard.html";
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Registration</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <button class="toggle" onclick="toggleDark()">Dark Mode</button>
+
+    <h1>User Registration</h1>
+
+    <input id="name" placeholder="Name">
+    <input id="email" placeholder="Email">
+
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="togglePassword()">Show Password</button>
+
+    <button onclick="register()">Register</button>
+
+    <p id="result" class="success"></p>
+
+    <div class="link">
+        Already registered? <a href="login.html">Login here</a>
+    </div>
+</div>
+
+<script>
+if (localStorage.getItem("dark") === "on") {
+    document.body.classList.add("dark");
+}
+
+function toggleDark() {
+    document.body.classList.toggle("dark");
+    localStorage.setItem("dark",
+        document.body.classList.contains("dark") ? "on" : "off"
+    );
+}
+
+function togglePassword() {
+    const p = document.getElementById("password");
+    p.type = p.type === "password" ? "text" : "password";
+}
+
+function register() {
+    fetch("http://localhost:8083/user/register", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            name: name.value,
+            email: email.value,
+            password: password.value
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        result.innerText = "Registered successfully! User ID = " + data.userId;
+    });
+}
+</script>
+
+</body>
+</html>
